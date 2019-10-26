@@ -1,4 +1,4 @@
-
+const User = require('../models/user');
 const userRoutes = (app, fs) => {
 
     // variables
@@ -28,46 +28,106 @@ const userRoutes = (app, fs) => {
 
     // READ
     app.get('/users', (req, res) => {
-        fs.readFile(dataPath, 'utf8', (err, data) => {
-            if (err) {
-                throw err;
-            }
+        // fs.readFile(dataPath, 'utf8', (err, data) => {
+        //     if (err) {
+        //         throw err;
+        //     }
 
-            res.send(JSON.parse(data));
+        //     res.send(JSON.parse(data));
+        // });
+        User.find({}, (err, users) => {
+            if (err) {
+              res.status(404);
+              res.send('Users not found!');
+            }
+        
+            // return a view with data
+            res.send(users);
+          });
+    });
+
+    app.get('/users/:name', (req, res) => {
+        User.findOne({name: req.params.name}, (err, user) => {
+            if (err) {
+              res.status(404);
+              res.send('Users not found!');
+            }
+        
+            // return a view with data
+            res.send(user);
+          });
+    })
+
+    app.get('/users/seed', (req, res) => {
+        // create some events
+        const users = [
+            {
+                name: "andrew",
+                password: "test111",
+                profession: "dev"
+            }
+        ];
+
+        // use the Event model to insert/save
+        User.remove({}, () => {
+        for (user of users) {
+            var newUser = new User(user);
+            newUser.save(err => {
+                console.log(err);
+            });
+        }
         });
+
+        // seeded!
+        res.send('Database seeded!');
     });
 
     // CREATE
     app.post('/users', (req, res) => {
 
-        readFile(data => {
-            const newUserId = Object.keys(data).length + 1;
+        // readFile(data => {
+        //     const newUserId = Object.keys(data).length + 1;
 
-            // add the new user
-            data[newUserId.toString()] = req.body;
+        //     // add the new user
+        //     data[newUserId.toString()] = req.body;
 
-            writeFile(JSON.stringify(data, null, 2), () => {
-                res.status(200).send('new user added');
-            });
-        },
-            true);
+        //     writeFile(JSON.stringify(data, null, 2), () => {
+        //         res.status(200).send('new user added');
+        //     });
+        // },
+        //     true);
+        var user = new User( {
+            name: req.body.name,
+            password: req.body.password,
+            profession: req.body.profession
+        });
+        user.save(err => {
+            if(err) {
+                console.log(err);
+                res.status(400).send('cannot create user');
+            }
+            res.status(200).send('user added.')
+        })
     });
 
 
+
+
     // UPDATE
-    app.put('/users/:id', (req, res) => {
+    app.put('/users/:name', (req, res) => {
 
-        readFile(data => {
+        // readFile(data => {
 
-            // add the new user
-            const userId = req.params["id"];
-            data[userId] = req.body;
+        //     // add the new user
+        //     const userId = req.params["id"];
+        //     data[userId] = req.body;
 
-            writeFile(JSON.stringify(data, null, 2), () => {
-                res.status(200).send(`users id:${userId} updated`);
-            });
-        },
-            true);
+        //     writeFile(JSON.stringify(data, null, 2), () => {
+        //         res.status(200).send(`users id:${userId} updated`);
+        //     });
+        // },
+        //     true);
+
     });
 
 
